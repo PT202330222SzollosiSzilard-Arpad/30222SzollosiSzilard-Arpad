@@ -1,7 +1,9 @@
 import java.util.HashMap;
+import java.util.*;
 
 public class Polinom {
     HashMap <Integer, Monom> polinom = new HashMap<Integer,Monom>();
+    Polinom(){};
     Polinom(Integer x , Monom z){
         this.polinom.put(x,z);
     }
@@ -11,7 +13,5 @@ public class Polinom {
     }
 
 
-    public HashMap afis(){
-        return this.polinom;
-    }
+
 }
