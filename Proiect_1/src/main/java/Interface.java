@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Interface {
 
@@ -44,6 +46,15 @@ public class Interface {
                   String rezultat = new String();
                   String polin1 = tf1.getText();
                   String polin2 = tf2.getText();
+                  String pattern1 = "(\\+?\\-?\\d{1,9}x\\^\\-?\\d{1,9})";
+                  String pattern2 = "(\\-?)\\d{1,9}";
+                  Pattern patt1 = Pattern.compile(pattern1);
+                  Pattern patt2 = Pattern.compile(pattern2);
+                  Matcher match1 = patt1.matcher(polin1);
+                  while(match1.find()){
+                      rezultat = match1.group(1);
+                      Matcher match2 = patt2.matcher(rezultat);
+                  }
 
                   tf3.setText(rezultat);
               }
