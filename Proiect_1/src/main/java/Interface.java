@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Interface {
 
@@ -10,6 +12,7 @@ public class Interface {
           frame.setLayout(null);
           frame.setVisible(true);
           JButton adun = new JButton("Adunare");
+
           JButton scad = new JButton("Scadere");
           JLabel lab1 = new JLabel("Polinom1:");
           JLabel lab2 = new JLabel("Polinom2:");
@@ -33,5 +36,20 @@ public class Interface {
           frame.add(scad);
           frame.add(tf3);
           frame.add(lab3);
+
+          adun.addActionListener(new ActionListener() {
+
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                  String rezultat = new String();
+                  String polin1 = tf1.getText();
+                  String polin2 = tf2.getText();
+
+                  tf3.setText(rezultat);
+              }
+          });
+
+
       }
+
 }
