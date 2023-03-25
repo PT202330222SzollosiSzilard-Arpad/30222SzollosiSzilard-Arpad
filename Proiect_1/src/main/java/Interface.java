@@ -103,6 +103,67 @@ public class Interface {
           });
 
 
+          scad.addActionListener(new ActionListener() {
+
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                  Polinom p1 = new Polinom();
+                  Polinom p2 = new Polinom();
+                  String rezultat = new String();
+                  String polin1 = tf1.getText();
+                  String polin2 = tf2.getText();
+                  String pattern1 = "(\\+?\\-?\\d{1,9}x\\^\\-?\\d{1,9})";
+                  String pattern2 = "(\\-?\\d{1,9})";
+                  Pattern patt1 = Pattern.compile(pattern1);
+                  Pattern patt2 = Pattern.compile(pattern2);
+                  Matcher match1 = patt1.matcher(polin1);
+                  while(match1.find()){
+
+                      Matcher match2 = patt2.matcher(match1.group(1));
+                      System.out.println(match1.group(1));
+                      Integer coef=0;
+                      Integer exp = 0;
+                      while(match2.find()){
+                          if(coef == 0){
+                              coef = parseInt(match2.group(1));
+                          }
+                          else {
+                              exp = parseInt(match2.group(1));
+                          }
+
+                      }
+                      Monom m = new Monom(coef,exp);
+                      p1.add(exp,m);
+                  }
+                  Matcher match3 = patt1.matcher(polin2);
+                  while(match3.find()){
+
+                      Matcher match2 = patt2.matcher(match3.group(1));
+                      System.out.println(match3.group(1));
+                      Integer coef=0;
+                      Integer exp = 0;
+                      while(match2.find()){
+                          if(coef == 0){
+                              coef = parseInt(match2.group(1));
+                          }
+                          else {
+                              exp = parseInt(match2.group(1));
+                          }
+
+                      }
+                      Monom m = new Monom(coef,exp);
+                      p2.add(exp,m);
+                  }
+                  Operatii op = new Operatii();
+
+                  String rez_str = op.scadere(p1,p2);
+
+                  tf3.setText(rez_str);
+
+
+              }
+          });
+
       }
 
 }

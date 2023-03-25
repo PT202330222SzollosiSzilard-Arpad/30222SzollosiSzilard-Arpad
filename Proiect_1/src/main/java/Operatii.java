@@ -34,7 +34,7 @@ public class Operatii {
                 rezultat = rezultat+"+" +monom.coef+"x^"+exp;
             }
             else{
-                rezultat = rezultat+"-" +monom.coef+"x^"+exp;
+                rezultat = rezultat+monom.coef+"x^"+exp;
             }
 
         }
@@ -56,7 +56,7 @@ public class Operatii {
                 }
             }
             if(x == 0){
-                Monom m1 = new Monom(-p1.polinom.get(key1).coef,p1.polinom.get(key1).exp);
+                Monom m1 = new Monom(p1.polinom.get(key1).coef,p1.polinom.get(key1).exp);
                 rez.polinom.put(key1,m1);
 
             }
@@ -64,7 +64,8 @@ public class Operatii {
 
         Set<Integer> keysop = p2.polinom.keySet();
         for(Integer key : p2.polinom.keySet()){
-            rez.polinom.put(key,p2.polinom.get(key));
+            Monom m1 = new Monom(-p2.polinom.get(key).coef,p2.polinom.get(key).exp);
+            rez.polinom.put(key,m1);
         }
         String rezultat = new String();
 
@@ -75,8 +76,9 @@ public class Operatii {
                 rezultat = rezultat+"+" +monom.coef+"x^"+exp;
             }
             else{
-                rezultat = rezultat+"-" +monom.coef+"x^"+exp;
+                rezultat = rezultat+monom.coef+"x^"+exp;
             }
+
         }
 
         return rezultat;
