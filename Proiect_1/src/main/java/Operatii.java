@@ -1,10 +1,8 @@
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Operatii {
 
-    public Polinom adunare(Polinom p1,Polinom p2) {
+    public String adunare(Polinom p1,Polinom p2) {
         Polinom rez = new Polinom();
 
         for(Integer key1 : p1.polinom.keySet()){
@@ -27,10 +25,24 @@ public class Operatii {
         for(Integer key : p2.polinom.keySet()){
             rez.polinom.put(key,p2.polinom.get(key));
         }
-        return rez;
+        String rezultat = new String();
+
+        for(Map.Entry<Integer ,Monom> entry : rez.polinom.entrySet()){
+            int exp = entry.getKey();
+            Monom monom = entry.getValue();
+            if(monom.coef > 0){
+                rezultat = rezultat+"+" +monom.coef+"x^"+exp;
+            }
+            else{
+                rezultat = rezultat+"-" +monom.coef+"x^"+exp;
+            }
+
+        }
+
+        return rezultat;
     }
 
-    public Polinom scadere(Polinom p1,Polinom p2) {
+    public String scadere(Polinom p1,Polinom p2) {
         Polinom rez = new Polinom();
 
         for(Integer key1 : p1.polinom.keySet()){
@@ -54,6 +66,19 @@ public class Operatii {
         for(Integer key : p2.polinom.keySet()){
             rez.polinom.put(key,p2.polinom.get(key));
         }
-        return rez;
+        String rezultat = new String();
+
+        for(Map.Entry<Integer ,Monom> entry : rez.polinom.entrySet()){
+            int exp = entry.getKey();
+            Monom monom = entry.getValue();
+            if(monom.coef > 0){
+                rezultat = rezultat+"+" +monom.coef+"x^"+exp;
+            }
+            else{
+                rezultat = rezultat+"-" +monom.coef+"x^"+exp;
+            }
+        }
+
+        return rezultat;
     }
 }
