@@ -19,5 +19,17 @@ public class Monom {
         mono.coef = this.coef - m2.coef;
         return mono;
     }
+    public Monom mul(Monom m2){
+        Monom mono = new Monom(0,0);
+        mono.exp = this.exp * m2.exp;
+        mono.coef = this.coef * m2.coef;
+        return mono;
+    }
 
+    public Monom deriv(){
+        Monom mono = new Monom(0,0);
+        mono.coef = this.exp * coef;
+        mono.exp = this.exp-1;
+        return mono;
+    }
 }

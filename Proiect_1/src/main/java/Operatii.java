@@ -2,7 +2,7 @@ import java.util.*;
 
 public class Operatii {
 
-    public String adunare(Polinom p1,Polinom p2) {
+    public Polinom adunare(Polinom p1,Polinom p2) {
         Polinom rez = new Polinom();
 
         for(Integer key1 : p1.polinom.keySet()){
@@ -21,28 +21,15 @@ public class Operatii {
             }
         }
 
-        Set<Integer> keysop = p2.polinom.keySet();
+
         for(Integer key : p2.polinom.keySet()){
             rez.polinom.put(key,p2.polinom.get(key));
         }
-        String rezultat = new String();
 
-        for(Map.Entry<Integer ,Monom> entry : rez.polinom.entrySet()){
-            int exp = entry.getKey();
-            Monom monom = entry.getValue();
-            if(monom.coef > 0){
-                rezultat = rezultat+"+" +monom.coef+"x^"+exp;
-            }
-            else{
-                rezultat = rezultat+monom.coef+"x^"+exp;
-            }
-
-        }
-
-        return rezultat;
+        return rez;
     }
 
-    public String scadere(Polinom p1,Polinom p2) {
+    public Polinom scadere(Polinom p1,Polinom p2) {
         Polinom rez = new Polinom();
 
         for(Integer key1 : p1.polinom.keySet()){
@@ -62,25 +49,37 @@ public class Operatii {
             }
         }
 
-        Set<Integer> keysop = p2.polinom.keySet();
+
         for(Integer key : p2.polinom.keySet()){
             Monom m1 = new Monom(-p2.polinom.get(key).coef,p2.polinom.get(key).exp);
             rez.polinom.put(key,m1);
         }
-        String rezultat = new String();
 
-        for(Map.Entry<Integer ,Monom> entry : rez.polinom.entrySet()){
-            int exp = entry.getKey();
-            Monom monom = entry.getValue();
-            if(monom.coef > 0){
-                rezultat = rezultat+"+" +monom.coef+"x^"+exp;
-            }
-            else{
-                rezultat = rezultat+monom.coef+"x^"+exp;
-            }
+        return rez;
+    }
+    public Polinom mul(Polinom p1,Polinom p2) {
 
+        Polinom rezultat = new Polinom();
+        for(Integer key1 : p1.polinom.keySet()){
+            Polinom rez = new Polinom();
+            for(Integer key2 : p2.polinom.keySet()){
+
+                    rez.polinom.put(key1+key2, p1.polinom.get(key1).mul(p2.polinom.get(key2)));
+
+            }
+            rezultat=adunare(rezultat,rez);
         }
 
+        return rezultat;
+    }
+
+    public Polinom deriv(Polinom p1) {
+
+        Polinom rezultat = new Polinom();
+        for(Integer key1 : p1.polinom.keySet()){
+            rezultat.polinom.put(key1-1, p1.polinom.get(key1).deriv());
+
+        }
         return rezultat;
     }
 }
