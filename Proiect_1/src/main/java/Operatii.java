@@ -82,4 +82,13 @@ public class Operatii {
         }
         return rezultat;
     }
+
+    public Polinom integrare(Polinom p1){
+        Polinom rezultat = new Polinom();
+        for(Integer key1 : p1.polinom.keySet()){
+            rezultat.polinom.put(key1+1, p1.polinom.get(key1).integrare());
+        }
+
+        return rezultat;
+    }
 }

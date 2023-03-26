@@ -32,4 +32,13 @@ public class Monom {
         mono.exp = this.exp-1;
         return mono;
     }
+
+    public Monom integrare(){
+        Monom mono = new Monom(0,0);
+        mono.coef = coef;
+        mono.exp = this.exp+1;
+        return mono;
+    }
+
+
 }
