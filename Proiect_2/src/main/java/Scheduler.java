@@ -2,20 +2,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Scheduler {
-    private List<Server> servers;
+    private List<Server> servers = new ArrayList<>();
     private int maxNoServers;
     private int maxTasksPerServer;
-    private Strategy strategy;
+    private Strategy strategy ;
 
-    public Scheduler(int maxNoServers, int maxTasksPerServer) {
-        servers = new ArrayList<>();
+    public Scheduler(int maxNoServers, int maxTasksPerServer,SelectionPolicy s) {
         this.maxNoServers = maxNoServers;
         this.maxTasksPerServer = maxTasksPerServer;
         for (int i = 0; i < maxNoServers; i++) {
-            servers.add(new Server());
+            servers.add(new Server(i,maxTasksPerServer));
             Thread t = new Thread(servers.get(i));
             t.start();
         }
+        changeStrategy(s);
     }
 
     public void changeStrategy(SelectionPolicy policy){
@@ -31,7 +31,7 @@ public class Scheduler {
     }
 
     public void dispatchTask(Task t){
-        strategy.addTask(servers, t);
+        this.strategy.addTask(servers, t);
     }
 
     public List<Server> getServers(){

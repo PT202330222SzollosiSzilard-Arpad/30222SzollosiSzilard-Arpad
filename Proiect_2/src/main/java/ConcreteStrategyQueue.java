@@ -9,7 +9,7 @@ public class ConcreteStrategyQueue implements Strategy{
     public void addTask(List<Server> servers, Task t) {
         Server shortestQueue = servers.get(0);
         for (Server s : servers) {
-            if (s.getTasks().size() < shortestQueue.getTasks().size()) {
+            if (s.qSize() < shortestQueue.qSize()) {
                 shortestQueue = s;
             }
         }
