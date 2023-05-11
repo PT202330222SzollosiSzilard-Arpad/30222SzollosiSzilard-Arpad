@@ -1,0 +1,441 @@
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+new file mode 100644
+--- /dev/null	(date 1683817365327)
++++ b/pom.xml	(date 1683817365327)
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0"
++         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
++    <modelVersion>4.0.0</modelVersion>
++
++    <groupId>org.example</groupId>
++    <artifactId>Project3</artifactId>
++    <version>1.0-SNAPSHOT</version>
++
++    <properties>
++        <maven.compiler.source>19</maven.compiler.source>
++        <maven.compiler.target>19</maven.compiler.target>
++        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
++    </properties>
++
++</project>
+\ No newline at end of file
+Index: ../Proiect_2/src/main/java/SimulationManager.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.io.FileWriter;\r\nimport java.io.IOException;\r\nimport java.util.*;\r\n\r\npublic class SimulationManager implements Runnable {\r\n    public int timeLimit = 30;\r\n    public int minProcessingTime;\r\n    public int maxProcessingTime = 5;\r\n    public int min = 2;\r\n    public int numberOfServers = 4;\r\n    public int numberOfClients = 1;\r\n    public int maxArrT = timeLimit-10;\r\n\r\n    public SelectionPolicy selectionPolicy = SelectionPolicy.SHORTEST_TIME;\r\n\r\n    private Scheduler scheduler = new Scheduler(numberOfServers, numberOfClients, selectionPolicy);\r\n    private SimulationFrame frame ;\r\n    private List<Task> generatedTasks;\r\n\r\n    public SimulationManager() {\r\n        this.frame=new SimulationFrame();\r\n        getFields(frame.getInitValues());\r\n        this.scheduler = new Scheduler(numberOfServers,3,selectionPolicy);\r\n        generatedTasks= Collections.synchronizedList(new ArrayList<>());\r\n        generateNRandomTasks();\r\n    }\r\n\r\n    private void generateNRandomTasks() {\r\n\r\n\r\n        generatedTasks = new ArrayList<>();\r\n        Random random = new Random();\r\n        for (int i = 0; i < numberOfClients; i++) {\r\n            int arrivalTime = random.nextInt(maxArrT);\r\n\r\n                int serviceTime = random.nextInt(maxProcessingTime );\r\n                if(serviceTime < minProcessingTime)\r\n                    serviceTime = minProcessingTime;\r\n                generatedTasks.add(new Task(arrivalTime, serviceTime));\r\n\r\n        }\r\n        generatedTasks.sort((Comparator.comparing(Task::getArrivalTime)));\r\n        for (int i=0;i<numberOfClients;i++)\r\n            generatedTasks.get(i).setId(i);\r\n    }\r\n\r\n    private String printer(){\r\n        String stack=\"Waiting: \";\r\n        for (Task i:generatedTasks)\r\n        {\r\n            stack=stack+ \"(\"+i.getId()+\",\"+i.getArrivalTime()+\",\"+i.getServiceTime()+\");\";\r\n        }\r\n        stack=stack+\"\\n\";\r\n        for (Server i:scheduler.getServers()){\r\n            stack=stack+\"Queue \"+(i.getId()+1)+\": \";\r\n            if (i.qSize()==0)\r\n                stack=stack+\"Ready\";\r\n            else {\r\n                Task[] tasks=i.getTasks();\r\n                for(int j=0;j<i.qSize();j++)\r\n                    stack=stack+\"(\"+tasks[j].getId()+\",\"+tasks[j].getArrivalTime()+\",\"+tasks[j].getServiceTime()+\");\";\r\n\r\n            }\r\n            stack=stack+\"\\n\";\r\n        }\r\n        return stack;\r\n    }\r\n\r\n    public void run() {\r\n        Integer currentTime=0;\r\n        String display;\r\n        String fin=\" \";\r\n        while (currentTime<timeLimit)\r\n        {\r\n            int i=0;\r\n            while(i==0)\r\n            {\r\n                if (generatedTasks.size()!=0){\r\n                    Task j=generatedTasks.get(0);\r\n                    if (j.getArrivalTime() == currentTime)\r\n                    {\r\n                        scheduler.dispatchTask(j);\r\n                        generatedTasks.remove(j);\r\n                    }\r\n                    else if (j.getArrivalTime()>currentTime)\r\n                    {\r\n                        i=-1;\r\n                    }\r\n                }\r\n\r\n                if (generatedTasks.size()==0)\r\n                    i=-1;\r\n            }\r\n            display=\"Time \"+ currentTime +\"\\n\"+printer();\r\n            fin=fin+display;\r\n            System.out.println(display);\r\n            frame.insert(display);\r\n            currentTime++;\r\n            try{\r\n                Thread.sleep(1000);\r\n            } catch (InterruptedException e) {\r\n                e.printStackTrace();\r\n            }\r\n        }\r\n        try (FileWriter fileWriter = new FileWriter(\"log.txt\"))\r\n        {\r\n            fileWriter.write(fin);\r\n        }\r\n        catch (IOException ioException)\r\n        {\r\n            ioException.printStackTrace();\r\n        }\r\n\r\n    }\r\n\r\n\r\n    public void getFields(List<Integer> list){\r\n        this.numberOfClients=list.get(0);\r\n        this.timeLimit=list.get(1);\r\n        this.min=list.get(2);\r\n        this.maxArrT=list.get(3);\r\n        this.minProcessingTime=list.get(4);\r\n        this.maxProcessingTime=list.get(5);\r\n        this.numberOfServers=list.get(6);\r\n    }\r\n\r\n    public static void main(String[] args) {\r\n        SimulationManager gen = new SimulationManager();\r\n        gen.generateNRandomTasks();\r\n        Thread t = new Thread(gen);\r\n        t.start();\r\n\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/../Proiect_2/src/main/java/SimulationManager.java b/../Proiect_2/src/main/java/SimulationManager.java
+--- a/../Proiect_2/src/main/java/SimulationManager.java	(revision e3939247849ca3250c01d318380b39d6bbd58514)
++++ b/../Proiect_2/src/main/java/SimulationManager.java	(date 1682355665720)
+@@ -102,7 +102,7 @@
+                 e.printStackTrace();
+             }
+         }
+-        try (FileWriter fileWriter = new FileWriter("log.txt"))
++        try (FileWriter fileWriter = new FileWriter("log3.txt"))
+         {
+             fileWriter.write(fin);
+         }
+Index: ../Proiect_2/src/main/java/Server.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\nimport java.util.Collection;\r\nimport java.util.List;\r\nimport java.util.concurrent.BlockingQueue;\r\nimport java.util.concurrent.LinkedBlockingQueue;\r\nimport java.util.concurrent.atomic.AtomicInteger;\r\n\r\npublic class Server implements Runnable{\r\n\r\n    private BlockingQueue<Task> tasks;\r\n    private AtomicInteger waitingPeriod;\r\n\r\n    private int nr;\r\n\r\n    private int maxTasksPerQueue;\r\n    public Server(int x , int z){\r\n        this.nr = x;\r\n        this.maxTasksPerQueue = z;\r\n        this.tasks = new LinkedBlockingQueue<>();\r\n        this.waitingPeriod = new AtomicInteger();\r\n        waitingPeriod.set(0);\r\n    }\r\n\r\n    public void run(){\r\n        while (true){\r\n            try{\r\n                Thread.sleep(1000);\r\n            }catch (InterruptedException e){\r\n                e.printStackTrace();\r\n            }\r\n            if (tasks.size()>0){\r\n                tasks.element().setServiceTime(tasks.element().getServiceTime()-1);\r\n\r\n                if (tasks.element().getServiceTime()==0){\r\n                    try{\r\n                        tasks.take();\r\n                    }catch (InterruptedException e){\r\n                        e.printStackTrace();\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n\r\n    public void addTask(Task newTask) {\r\n        try {\r\n            tasks.put(newTask);\r\n\r\n        } catch (InterruptedException e) {\r\n            e.printStackTrace();\r\n        }\r\n        waitingPeriod.getAndAdd(newTask.getServiceTime());\r\n    }\r\n    public int getWaitingPeriod() {\r\n        return waitingPeriod.get();\r\n    }\r\n\r\n    public int getId(){\r\n        return nr;\r\n    }\r\n    public void setId(int x){\r\n        this.nr = x;\r\n    }\r\n\r\n\r\n    public int qSize(){\r\n        return tasks.size();\r\n    }\r\n    public Task[] getTasks() {\r\n        BlockingQueue<Task> cpy = new LinkedBlockingQueue<>(tasks);\r\n        return cpy.toArray(new Task[cpy.size()]);\r\n    }\r\n\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/../Proiect_2/src/main/java/Server.java b/../Proiect_2/src/main/java/Server.java
+--- a/../Proiect_2/src/main/java/Server.java	(revision e3939247849ca3250c01d318380b39d6bbd58514)
++++ b/../Proiect_2/src/main/java/Server.java	(date 1682340946598)
+@@ -24,7 +24,7 @@
+     public void run(){
+         while (true){
+             try{
+-                Thread.sleep(1000);
++                Thread.sleep(100);
+             }catch (InterruptedException e){
+                 e.printStackTrace();
+             }
+Index: ../Proiect_2/log.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+> Time 0\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: (0,0,4);\r\nQueue 2: Ready\r\nTime 1\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: (0,0,3);\r\nQueue 2: Ready\r\nTime 2\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: (0,0,2);\r\nQueue 2: Ready\r\nTime 3\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: (0,0,1);\r\nQueue 2: Ready\r\nTime 4\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 5\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 6\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 7\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 8\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 9\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 10\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 11\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 12\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 13\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 14\r\nWaiting: (1,15,0);(2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: Ready\r\nTime 15\r\nWaiting: (2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,0);\r\nTime 16\r\nWaiting: (2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-1);\r\nTime 17\r\nWaiting: (2,18,1);(3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-2);\r\nTime 18\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-3);(2,18,1);\r\nTime 19\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-4);(2,18,1);\r\nTime 20\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-5);(2,18,1);\r\nTime 21\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-6);(2,18,1);\r\nTime 22\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-7);(2,18,1);\r\nTime 23\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-8);(2,18,1);\r\nTime 24\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-9);(2,18,1);\r\nTime 25\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-10);(2,18,1);\r\nTime 26\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-11);(2,18,1);\r\nTime 27\r\nWaiting: (3,28,5);\r\nQueue 1: Ready\r\nQueue 2: (1,15,-12);(2,18,1);\r\nTime 28\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-13);(2,18,1);(3,28,5);\r\nTime 29\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-14);(2,18,1);(3,28,5);\r\nTime 30\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-15);(2,18,1);(3,28,5);\r\nTime 31\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-16);(2,18,1);(3,28,5);\r\nTime 32\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-17);(2,18,1);(3,28,5);\r\nTime 33\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-18);(2,18,1);(3,28,5);\r\nTime 34\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-19);(2,18,1);(3,28,5);\r\nTime 35\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-20);(2,18,1);(3,28,5);\r\nTime 36\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-21);(2,18,1);(3,28,5);\r\nTime 37\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-22);(2,18,1);(3,28,5);\r\nTime 38\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-23);(2,18,1);(3,28,5);\r\nTime 39\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-24);(2,18,1);(3,28,5);\r\nTime 40\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-25);(2,18,1);(3,28,5);\r\nTime 41\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-26);(2,18,1);(3,28,5);\r\nTime 42\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-27);(2,18,1);(3,28,5);\r\nTime 43\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-28);(2,18,1);(3,28,5);\r\nTime 44\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-29);(2,18,1);(3,28,5);\r\nTime 45\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-30);(2,18,1);(3,28,5);\r\nTime 46\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-31);(2,18,1);(3,28,5);\r\nTime 47\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-32);(2,18,1);(3,28,5);\r\nTime 48\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-33);(2,18,1);(3,28,5);\r\nTime 49\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-34);(2,18,1);(3,28,5);\r\nTime 50\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-35);(2,18,1);(3,28,5);\r\nTime 51\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-36);(2,18,1);(3,28,5);\r\nTime 52\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-37);(2,18,1);(3,28,5);\r\nTime 53\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-38);(2,18,1);(3,28,5);\r\nTime 54\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-39);(2,18,1);(3,28,5);\r\nTime 55\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-40);(2,18,1);(3,28,5);\r\nTime 56\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-41);(2,18,1);(3,28,5);\r\nTime 57\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-42);(2,18,1);(3,28,5);\r\nTime 58\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-43);(2,18,1);(3,28,5);\r\nTime 59\r\nWaiting: \r\nQueue 1: Ready\r\nQueue 2: (1,15,-44);(2,18,1);(3,28,5);\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/../Proiect_2/log.txt b/../Proiect_2/log.txt
+--- a/../Proiect_2/log.txt	(revision e3939247849ca3250c01d318380b39d6bbd58514)
++++ b/../Proiect_2/log.txt	(date 1682340953626)
+@@ -1,240 +1,240 @@
+  Time 0
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
+-Queue 1: (0,0,4);
++Waiting: (0,2,2);(1,7,3);(2,18,2);(3,23,3);
++Queue 1: Ready
+ Queue 2: Ready
+ Time 1
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
+-Queue 1: (0,0,3);
++Waiting: (0,2,2);(1,7,3);(2,18,2);(3,23,3);
++Queue 1: Ready
+ Queue 2: Ready
+ Time 2
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
+-Queue 1: (0,0,2);
++Waiting: (1,7,3);(2,18,2);(3,23,3);
++Queue 1: (0,2,2);
+ Queue 2: Ready
+ Time 3
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
+-Queue 1: (0,0,1);
++Waiting: (1,7,3);(2,18,2);(3,23,3);
++Queue 1: (0,2,1);
+ Queue 2: Ready
+ Time 4
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (1,7,3);(2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 5
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (1,7,3);(2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 6
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (1,7,3);(2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 7
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: Ready
++Queue 2: (1,7,3);
+ Time 8
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: Ready
++Queue 2: (1,7,2);
+ Time 9
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: Ready
++Queue 2: (1,7,1);
+ Time 10
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 11
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 12
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 13
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 14
+-Waiting: (1,15,0);(2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+ Queue 2: Ready
+ Time 15
+-Waiting: (2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,0);
++Queue 2: Ready
+ Time 16
+-Waiting: (2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,-1);
++Queue 2: Ready
+ Time 17
+-Waiting: (2,18,1);(3,28,5);
++Waiting: (2,18,2);(3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,-2);
++Queue 2: Ready
+ Time 18
+-Waiting: (3,28,5);
+-Queue 1: Ready
+-Queue 2: (1,15,-3);(2,18,1);
++Waiting: (3,23,3);
++Queue 1: (2,18,2);
++Queue 2: Ready
+ Time 19
+-Waiting: (3,28,5);
+-Queue 1: Ready
+-Queue 2: (1,15,-4);(2,18,1);
++Waiting: (3,23,3);
++Queue 1: (2,18,1);
++Queue 2: Ready
+ Time 20
+-Waiting: (3,28,5);
++Waiting: (3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,-5);(2,18,1);
++Queue 2: Ready
+ Time 21
+-Waiting: (3,28,5);
++Waiting: (3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,-6);(2,18,1);
++Queue 2: Ready
+ Time 22
+-Waiting: (3,28,5);
++Waiting: (3,23,3);
+ Queue 1: Ready
+-Queue 2: (1,15,-7);(2,18,1);
++Queue 2: Ready
+ Time 23
+-Waiting: (3,28,5);
++Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-8);(2,18,1);
++Queue 2: (3,23,3);
+ Time 24
+-Waiting: (3,28,5);
++Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-9);(2,18,1);
++Queue 2: (3,23,2);
+ Time 25
+-Waiting: (3,28,5);
++Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-10);(2,18,1);
++Queue 2: (3,23,1);
+ Time 26
+-Waiting: (3,28,5);
++Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-11);(2,18,1);
++Queue 2: Ready
+ Time 27
+-Waiting: (3,28,5);
++Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-12);(2,18,1);
++Queue 2: Ready
+ Time 28
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-13);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 29
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-14);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 30
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-15);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 31
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-16);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 32
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-17);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 33
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-18);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 34
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-19);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 35
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-20);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 36
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-21);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 37
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-22);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 38
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-23);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 39
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-24);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 40
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-25);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 41
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-26);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 42
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-27);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 43
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-28);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 44
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-29);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 45
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-30);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 46
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-31);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 47
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-32);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 48
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-33);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 49
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-34);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 50
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-35);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 51
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-36);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 52
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-37);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 53
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-38);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 54
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-39);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 55
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-40);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 56
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-41);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 57
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-42);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 58
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-43);(2,18,1);(3,28,5);
++Queue 2: Ready
+ Time 59
+ Waiting: 
+ Queue 1: Ready
+-Queue 2: (1,15,-44);(2,18,1);(3,28,5);
++Queue 2: Ready
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1683817364219)
++++ b/.idea/misc.xml	(date 1683817364219)
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ExternalStorageConfigurationManager" enabled="true" />
++  <component name="MavenProjectsManager">
++    <option name="originalFiles">
++      <list>
++        <option value="$PROJECT_DIR$/pom.xml" />
++      </list>
++    </option>
++  </component>
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_19" default="true" project-jdk-name="19" project-jdk-type="JavaSDK">
++    <output url="file://$PROJECT_DIR$/out" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1683817364233)
++++ b/.idea/vcs.xml	(date 1683817364233)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
