@@ -1,43 +1,39 @@
 package dataAccessLayer;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import businessLayer.ConnectionFactory;
+import model.Orders;
+import model.Product;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import businessLayer.ConnectionFactory;
-import model.Customer;
-import model.Product;
+public class ProductDAO {
+    protected static final Logger LOGGER = Logger.getLogger(OrdersDAO.class.getName());
+    private static final String insertStatementString = "INSERT INTO orders (ProductId,ProductName,ListPrice)"
+            + " VALUES (?,?,?)";
+    private final static String findStatementString = "SELECT * FROM orders where id = ?";
 
-
-public class ClientDAO {
-
-    protected static final Logger LOGGER = Logger.getLogger(ClientDAO.class.getName());
-    private static final String insertStatementString = "INSERT INTO customer (customername)"
-            + " VALUES (?)";
-    private final static String findStatementString = "SELECT * FROM customer where customerid = ?";
-
-    public static Customer findById(int customerId) {
-        Customer toReturn = null;
+    public static Product findById(int productId) {
+        Product toReturn = null;
 
         Connection dbConnection = ConnectionFactory.getConnection();
         PreparedStatement findStatement = null;
         ResultSet rs = null;
         try {
             findStatement = dbConnection.prepareStatement(findStatementString);
-            findStatement.setLong(1, customerId);
+            findStatement.setLong(1, productId);
             rs = findStatement.executeQuery();
             rs.next();
 
-            String name = rs.getString("name");
-            toReturn = new Customer(customerId, name);
+
+            String productName = rs.getString("ProductName");
+            float listPrice = rs.getFloat("ListPrice");
+            toReturn = new Product(productId, productName,listPrice);
         } catch (SQLException e) {
-            LOGGER.log(Level.WARNING,"CustomerDAO:findById " + e.getMessage());
+            LOGGER.log(Level.WARNING,"OrdersDAO:findById " + e.getMessage());
         } finally {
             ConnectionFactory.close(rs);
             ConnectionFactory.close(findStatement);
@@ -46,13 +42,17 @@ public class ClientDAO {
         return toReturn;
     }
 
-    public void insert(Customer customer) {
+    public static int insert(Product student) {
         Connection dbConnection = ConnectionFactory.getConnection();
+
         PreparedStatement insertStatement = null;
         int insertedId = -1;
         try {
             insertStatement = dbConnection.prepareStatement(insertStatementString, Statement.RETURN_GENERATED_KEYS);
-            insertStatement.setString(1, customer.getName());
+            insertStatement.setInt(1, student.getProductId());
+            insertStatement.setString(2, student.getProductName());
+
+            insertStatement.setFloat(3,student.getProductPrice());
             insertStatement.executeUpdate();
 
             ResultSet rs = insertStatement.getGeneratedKeys();
@@ -60,21 +60,22 @@ public class ClientDAO {
                 insertedId = rs.getInt(1);
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.WARNING, "CustomerDAO:insert " + e.getMessage());
+            LOGGER.log(Level.WARNING, "ProductDAO:insert " + e.getMessage());
         } finally {
             ConnectionFactory.close(insertStatement);
             ConnectionFactory.close(dbConnection);
         }
-
+        return insertedId;
     }
-    public void update(Customer prod) throws SQLException{
+
+    public void update(Product prod) throws SQLException{
         Connection dbConnection = ConnectionFactory.getConnection();
-        String querry = "update customer set CustomerName = ?  where CustomerId = ?";
+        String querry = "update products set name = ? ,price = ? where ProductId = ?";
         PreparedStatement insertStatement = dbConnection.prepareStatement(querry);
         try {
-            insertStatement.setInt(2, prod.getCustomerId());
-            insertStatement.setString(1, prod.getName());
-
+            insertStatement.setInt(3, prod.getProductId());
+            insertStatement.setString(1, prod.getProductName());
+            insertStatement.setFloat(2,prod.getProductPrice());
             insertStatement.executeUpdate();
         }catch (SQLException e) {
             LOGGER.log(Level.WARNING, "ProductDAO:update " + e.getMessage());
@@ -84,12 +85,12 @@ public class ClientDAO {
         }
     }
 
-    public void delete(int idClient) throws SQLException{
+    public void delete(int idProduct) throws SQLException{
         Connection dbConnection = ConnectionFactory.getConnection();
-        String querry = "delete from customer where CustomerId = ?";
+        String querry = "delete from products where ProductId = ?";
         PreparedStatement insertStatement = dbConnection.prepareStatement(querry);
         try {
-            insertStatement.setInt(1, idClient);
+            insertStatement.setInt(1, idProduct);
             insertStatement.executeUpdate();
         }catch (SQLException e) {
             LOGGER.log(Level.WARNING, "ProductDAO:delete " + e.getMessage());
@@ -98,17 +99,16 @@ public class ClientDAO {
             ConnectionFactory.close(dbConnection);
         }
     }
-
-    public List<Customer> view() throws SQLException{
+    public List<Product> view() throws SQLException{
         Connection dbConnection = ConnectionFactory.getConnection();
-        String querry = "select * from customer";
-        List<Customer> clienti = new ArrayList<>();
+        String querry = "select * from product";
+        List<Product> order = new ArrayList<>();
         PreparedStatement statement = dbConnection.prepareStatement(querry);
         try{
             ResultSet result = statement.executeQuery();
             while(result.next()) {
-                Customer customer = new Customer(result.getInt("CustomerId"), result.getString("CustomerName"));
-                clienti.add(customer);
+                Product orderz = new Product(result.getInt("ProductId"),result.getString("ProductName"),result.getInt("ListPrice"));
+                order.add(orderz);
             }
         }catch (SQLException e) {
             LOGGER.log(Level.WARNING, "ProductDAO:view " + e.getMessage());
@@ -116,7 +116,7 @@ public class ClientDAO {
             ConnectionFactory.close(statement);
             ConnectionFactory.close(dbConnection);
         }
-        return clienti;
+        return order;
     }
 
 }

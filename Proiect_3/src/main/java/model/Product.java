@@ -9,8 +9,10 @@ public class Product {
     private float productPrice;
 
 
-    public Product(){
-
+    public Product(int x , String n, float pr){
+        this.productPrice = pr;
+        this.productName = n;
+        this.productId = x;
     }
 
     public float getProductPrice() {
