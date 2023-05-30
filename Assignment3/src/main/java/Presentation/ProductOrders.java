@@ -4,7 +4,7 @@ import dataAccessLayer.OrdersDAO;
 import dataAccessLayer.ProductDAO;
 import model.Orders;
 import model.Product;
-
+import businessLayer.BillLog;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
@@ -116,6 +116,8 @@ public class ProductOrders {
 
                 ordersDAO.insert(order);
                 System.out.println("Success");
+                BillLog billLog = new BillLog();
+                billLog.generateBill(order.getId(),order.getIdproduct(),order.getIdcustomer(),order.getNumar());
             });
             framedelete.add(idNouLabel);
             framedelete.add(idNou);
@@ -211,6 +213,8 @@ public class ProductOrders {
 
                 ordersDAO.update(order.getId(),order);
                 System.out.println("Success");
+                BillLog billLog = new BillLog();
+                billLog.generateBill(order.getId(),order.getIdproduct(),order.getIdcustomer(),order.getNumar());
             });
               framedelete.add(idNouLabel);
              framedelete.add(idNou);
